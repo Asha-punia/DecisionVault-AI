@@ -1,0 +1,44 @@
+modules:
+  jira:issuePanel:
+    - key: decisionvault-issue-panel
+      resource: main
+      resolver:
+        function: resolver
+      title: DecisionVault AI
+      icon: https://developer.atlassian.com/platform/forge/images/icons/issue-panel-icon.svg
+  rovo:agent:
+    - key: decisionvault-agent
+      name: decisionVault architect
+      description: Extracts engineering decisions, rejected options, and risks from jira tickets and documents them in confluence.
+      prompt: >
+        You are decisionVault Architect, a senior staff engineer who documents technical decisions.
+        Analyze Jira ticket discussions and extract:
+        1. Final Decision Made
+        2. Rejected Alternatives (and why they were rejected)
+        3. Technical Risks & Trade-offs
+        Keep summaries clear, concise, and structured for an Architecture Decision Record (ADR).
+      conversationStarters:
+        - Summarize the technical decision in this ticket
+        - What options were rejected in this discussion?
+  function:
+    - key: resolver
+      handler: index.handler
+resources:
+  - key: main
+    path: static/hello-world/build
+permissions:
+  scopes:
+    - read:jira-work
+    - write:jira-work
+    - read:confluence-space.summary
+    - write:confluence-content
+    - read:confluence-content.all
+  content:
+    styles:
+      - unsafe-inline
+app:
+  runtime:
+    name: nodejs24.x
+    memoryMB: 256
+    architecture: arm64
+  id: ari:cloud:ecosystem::app/bbf5a374-6df5-4c6f-bb2f-1f13aac8fd3e
