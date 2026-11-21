@@ -20,19 +20,68 @@ modules:
       conversationStarters:
         - Summarize the technical decision in this ticket
         - What options were rejected in this discussion?
+      actions:
+        - getJiraIssueDetails
+        - getConfluenceSpaces
+        - publishADR
+  action:
+    - key: getJiraIssueDetails
+      name: Get Jira Issue details
+      function: get-jira-issue-fn
+      actionVerb: GET
+      description: Fetches the summary, description, and all comments of a Jira ticket.
+      inputs:
+        issueKey:
+          title: Issue key
+          type: string
+          required: true
+          description: The Jira ticket key(for example, PROJ-101).
+
+    - key: getConfluenceSpaces
+      name: Get Confluence Spaces
+      function: get-spaces-fn
+      actionVerb: GET
+      description: Lists all Confluence spaces availabe to the current user.
+
+    - key: publishADR
+      name: Publish ADR to Confluence
+      function: publish-adr-fn
+      actionVerb: CREATE
+      description: Publishs a formatted Architecture Decision Record page into a chosen Confluence space.
+      inputs:
+        spaceKey:
+          title: Space key
+          type: string
+          required: true
+          description: The Confluence space key where the ADR will be created.
+        title:
+          title: Page Title
+          type: string
+          required: true
+          description: Unique title for the Confluence ADR page.
+        adrContent:
+          title: Page Content
+          type: string
+          required: true
+          description: HTML-formatted body of the ADR document.
+
   function:
     - key: resolver
       handler: index.handler
+    - key: get-jira-issue-fn
+      handler: index.getJiraIssueDetails
+    - key: get-spaces-fn
+      handler: index.getConfluenceSpaces
+    - key: publish-adr-fn
+      handler: index.publishADR
 resources:
   - key: main
     path: static/hello-world/build
 permissions:
   scopes:
     - read:jira-work
-    - write:jira-work
-    - read:confluence-space.summary
-    - write:confluence-content
-    - read:confluence-content.all
+    - read:space:confluence
+    - write:page:confluence
   content:
     styles:
       - unsafe-inline
