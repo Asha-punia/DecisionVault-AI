@@ -1,41 +1,60 @@
-import React, { useEffect, useState } from 'react';
-import { events, invoke } from '@forge/bridge';
+import { useEffect, useState } from "react";
+import { view, invoke } from "@forge/bridge";
 
 function App() {
-  const [data, setData] = useState(null);
-
-  const handleFetchSuccess = (data) => {
-    setData(data);
-    if (data.length === 0) {
-      throw new Error('No labels returned');
-    }
-  };
-  const handleFetchError = () => {
-    console.error('Failed to get label');
-  };
+  const [issueKey, setIssueKey] = useState("");;
+  const [ticketData, setTicketData] = useState(null);
+  const [spaces, setSpaces] = useState([]);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const fetchLabels = async () => invoke('fetchLabels');
-    fetchLabels().then(handleFetchSuccess).catch(handleFetchError);
-    const subscribeForIssueChangedEvent = () =>
-      events.on('JIRA_ISSUE_CHANGED', () => {
-        fetchLabels().then(handleFetchSuccess).catch(handleFetchError);
-      });
-    const subscription = subscribeForIssueChangedEvent();
-
-    return () => {
-      subscription.then((subscription) => subscription.unsubscribe());
-    };
+    async function init() {
+      try {
+        const context = await view.getContext();
+        setIssueKey(context?.extension?.issue?.key || "MC-8");
+      }catch(e) {
+        console.log("Failed to fetch issueKey", e);
+        setIssueKey("MC-8");
+      }
+    }
+    init();
   }, []);
-
-  if (!data) {
-    return <div>Loading...</div>;
+  
+  const handleLoad = async () => {
+    setError("");
+    setLoading(true);
+    try {
+      const issueObj = await invoke("getJiraIssueDetails", {issueId: issueKey});
+      const spaces = await invoke("getConfluenceSpaces");
+      setTicketData(issueObj);
+      setSpaces(Array.isArray(spaces) ? spaces : []);
+    }catch(e) {
+      console.log("handle load failed!", e);
+      setError(e);
+    }finally {
+      setLoading(false);
+    }
   }
-  const labels = data.map((label) => <div>{label}</div>);
   return (
     <div>
-      <span>Issue labels:</span>
-      <div>{labels}</div>
+      <h3>DecisionVault AI</h3>
+      <p>Active Ticket: <strong>{issueKey || "Loading..."} </strong></p>
+      <button onClick={handleLoad} disabled={loading}>{disabled ? "Loading..." : "Load Ticket & Spaces"}</button>
+      {error && <p>error?.message || String(error)</p>}
+      {ticketData && <>
+        <h3>Summary:</h3>
+        <p>{ticketData.summary}</p>
+        <h3>Description</h3>
+        <p>{ticketData.description}</p>
+        <h4>Comments: <strong>{ticketData.comments.length}</strong></h4>
+      </>}
+      {spaces && spaces.map(space => {
+        <div key={space.key || space.id}>
+          Space: <p>{space.name}</p>
+          SpaceKey: <p>{space.key}</p>
+        </div>
+      })}
     </div>
   );
 }
