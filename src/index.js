@@ -35,7 +35,7 @@ async function createConfluenceADR(spaceKey, title, adrContent) {
   );
   if(!targetSpace) {
     const available = spaces.map(s => `${s.key} (${s.name})`).join(', ');
-    throw new Error(`Confluence space "${spaceKey}" notfound. Available spaces: ${available}`);
+    throw new Error(`Confluence space "${spaceKey}" not found. Available spaces: ${available}`);
   }
   const bodyData = {
     spaceId: targetSpace.id,
@@ -85,6 +85,7 @@ resolver.define('getConfluenceSpaces', async (req) => {
 
 resolver.define('publishADR', async (req) => {
   const {spaceKey, title, adrContent} = req.payload;
+  console.log("PublishADR payload:", req.payload);
   return await createConfluenceADR(spaceKey, title, adrContent);
 });
 
