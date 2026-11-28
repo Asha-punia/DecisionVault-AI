@@ -94,7 +94,6 @@ function App() {
         <h2>Discussion &amp; Comments</h2>
         ${comments}
       `;
-      console.log("Publishing payload: ", {spaceKey: selectedSpaceKey, title, adrContent});
       const res = await invoke("publishADR", {
         spaceKey: selectedSpaceKey,
         title,

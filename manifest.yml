@@ -82,6 +82,7 @@ permissions:
     - read:jira-work
     - read:space:confluence
     - write:page:confluence
+    - read:page:confluence
   content:
     styles:
       - unsafe-inline
